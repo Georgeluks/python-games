@@ -17,51 +17,53 @@ walk_left = [pygame.image.load('L1.png'), pygame.image.load('L2.png'), pygame.im
 bg = pygame.image.load('bg.jpg')
 char = pygame.image.load('standing.png')
 
-#Moving the Character
-
-#charachter attributtes
-x = 50
-y = 400
-width = 40
-height = 60
-vel = 5
-
-#Jump Atributes
-run = True
-is_jump = False
-jump_count = 10
-
-#Variables to keep track of the character`s direction
-left = False
-right = False
-walk_count = 0
-
-#Redrawing the game window - Main function
-def redraw_game_window():
-    # We have 9 images for our walking animation, I want to show the same image for 3 frames
-    # so I use the number 27 as an upper bound for walkCount because 27 / 3 = 9. 
-    # 9 images shown, 3 times each animation.
-    global walk_count
-
-    win.blit(bg, (0,0)) #this will draw the bg image at (0,0)
-
-    if walk_count + 1 >= 27:
-        walk_count = 0
-    
-    if left: #if the character is facing left
-        win.blit(walk_left[walk_count//3], (x,y)) #we integer divide walk_count by 3 to ensure each
-        walk_count += 1 #image is shown 3 times every animation
-    elif right:
-        win.blit(walk_right[walk_count//3], (x,y))
-        walk_count += 1
-    else:
-        win.blit(char, (x,y)) #if the character is standing still
-    
-    pygame.display.update()
-
 #Setting the framerate to 27
 clock = pygame.time.Clock()
 
+#Moving the Character
+class player(object):
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = 5
+        self.is_jump = False
+        self.right = False
+        self.left = False
+        self.walk_count = 0
+        self.jump_count = 10
+    
+    def draw(self, win):
+        # We have 9 images for our walking animation, I want to show the same image for 3 frames
+        # so I use the number 27 as an upper bound for walkCount because 27 / 3 = 9. 
+        # 9 images shown, 3 times each animation.
+
+        if self.walk_count + 1 >= 27:
+            self.walk_count = 0
+        
+        if self.left:
+            win.blit(walk_left[self.walk_count//3], (self.x, self.y)) #we integer divide walk_count by 3 to ensure each
+            self.walk_count += 1 #image is shown 3 times every animation
+        elif self.right:
+            win.blit(walk_right[self.walk_count//3], (self.x, self.y))
+            self.walk_count += 1
+        else:
+            win.blit(char, (self.x, self.y)) #if the character is standing still
+
+
+
+#Redrawing the game window - Main function
+def redraw_game_window():
+    win.blit(bg, (0,0)) #this will draw the bg image at (0,0)
+    man.draw(win)
+
+    pygame.display.update()
+
+
+#Main Loop
+man = player(200, 410, 64, 64)
+run = True
 while run:
     clock.tick(27)
 
@@ -73,35 +75,39 @@ while run:
 
     #we can check if a key is pressed like this
 
-    if keys[pygame.K_LEFT] and x > vel: #setup boundaries so the top left position of the character is greater than our vel so we never move off screen
-        x -= vel
-        left = True
-        right = False
+    if keys[pygame.K_LEFT] and man.x > man.vel: #setup boundaries so the top left position of the character is greater than our vel so we never move off screen
+        man.x -= man.vel
+        man.left = True
+        man.right = False
 
-    elif keys[pygame.K_RIGHT] and x < 480 - vel - width: #setup boundaries so the top right corner of our character is less than the screen width - its width
-        x += vel
-        left = False
-        right = True
+    elif keys[pygame.K_RIGHT] and man.x < 480 - man.vel - man.width: #setup boundaries so the top right corner of our character is less than the screen width - its width
+        man.x += man.vel
+        man.left = False
+        man.right = True
 
     else: #if the character is not moving it will set both L and R false and reset the animation counter (walk_count)
-        left = False
-        right = False
-        walk_count = 0
+        man.left = False
+        man.right = False
+        man.walk_count = 0
 
-    if not(is_jump): #Check if user is not jumping
+    if not(man.is_jump): #Check if user is not jumping
         if keys[pygame.K_SPACE]:
-            is_jump = True
-            left = False
-            right = False
-            walk_count = 0
+            man.is_jump = True
+            man.left = False
+            man.right = False
+            man.walk_count = 0
     else:
         #this is what will happen if we are jumping
-        if jump_count >= -10:
-            y -= (jump_count * abs(jump_count)) * 0.5
-            jump_count -= 1
+        if man.jump_count >= -10:
+            neg = 1
+            if man.jump_count < 0:
+                neg = -1
+            man.y -= (man.jump_count ** 2) * 0.5 * neg
+            man.jump_count -= 1
+
         else: #this will execute if our jump is finished 
-            jump_count = 10
-            is_jump = False
+            man.jump_count = 10
+            man.is_jump = False
             #Resetting our variables
 
 
