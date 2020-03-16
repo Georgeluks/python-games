@@ -58,7 +58,6 @@ class player(object):
             else:
                 win.blit(walk_left[0], (self.x, self.y))
 
-
 #Projectile Class
 class projectile(object):
     def __init__(self, x, y, radius, color, facing):
@@ -72,10 +71,54 @@ class projectile(object):
     def draw(self, win):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
+#Enemies Class
+class enemy(object):
+    #import enemies animation
+    walk_right = [pygame.image.load('R1E.png'), pygame.image.load('R2E.png'), pygame.image.load('R3E.png'), pygame.image.load('R4E.png'), pygame.image.load('R5E.png'), pygame.image.load('R6E.png'), pygame.image.load('R7E.png'), pygame.image.load('R8E.png'), pygame.image.load('R9E.png'), pygame.image.load('R10E.png'), pygame.image.load('R11E.png')]
+    walk_left = [pygame.image.load('L1E.png'), pygame.image.load('L2E.png'), pygame.image.load('L3E.png'), pygame.image.load('L4E.png'), pygame.image.load('L5E.png'), pygame.image.load('L6E.png'), pygame.image.load('L7E.png'), pygame.image.load('L8E.png'), pygame.image.load('L9E.png'), pygame.image.load('L10E.png'), pygame.image.load('L11E.png')]
+
+    def __init__(self, x, y, width, height, end):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.path = [x, end] #This will define where the enemy starts and finishes his path
+        self.walk_count = 0
+        self.vel = 3
+    
+    def move(self):
+        if self.vel > 0: #if we are moving right
+            if self.x < self.path[1] + self.vel: #if we`ve not reached the furthest right point on our path
+                self.x += self.vel
+            else: #Change direction
+                self.vel= self.vel * -1
+                self.x += self.vel
+                self.walk_count = 0
+        else: #IF we are moving left
+            if self.x > self.path[0] - self.vel: #if we have not reached the furthest left point on our path
+                self.x += self.vel
+            else: #change direction
+                self.vel = self.vel * -1
+                self.x += self.vel
+                self.walk_count = 0
+    
+    def draw(self, win):
+        self.move()
+        if self.walk_count + 1 >= 33: #33 because the enemies have 11 images for each animation, each image for 3 frames > 3 x 11 = 22
+            self.walk_count = 0
+
+        if self.vel > 0: #if we are moving to the right we will display  our walk_right images
+            win.blit(self.walk_right[self.walk_count//3], (self.x, self.y))
+            self.walk_count += 1
+        else: #otherwise we will display our walk_left images
+            win.blit(self.walk_left[self.walk_count // 3], (self.x, self.y))
+            self.walk_count += 1
+
 #Redrawing the game window - Main function
 def redraw_game_window():
     win.blit(bg, (0,0)) #this will draw the bg image at (0,0)
     man.draw(win)
+    goblin.draw(win)
 
     for bullet in bullets:
         bullet.draw(win)
@@ -85,6 +128,7 @@ def redraw_game_window():
 
 #Main Loop
 man = player(200, 410, 64, 64)
+goblin = enemy(100, 410, 64, 64, 300)
 run = True
 bullets = []
 while run:
