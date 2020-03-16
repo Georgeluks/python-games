@@ -34,6 +34,7 @@ class player(object):
         self.walk_count = 0
         self.jump_count = 10
         self.standing = True
+        self.hitbox = (self.x + 17, self.y + 11, 29, 52) #this elements are: top left x, top left y, width, height
     
     def draw(self, win):
         # We have 9 images for our walking animation, I want to show the same image for 3 frames
@@ -57,6 +58,9 @@ class player(object):
                 win.blit(walk_right[0], (self.x, self.y))
             else:
                 win.blit(walk_left[0], (self.x, self.y))
+            
+        self.hitbox = (self.x + 17, self.y + 11, 29, 52)
+        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
 
 #Projectile Class
 class projectile(object):
@@ -85,6 +89,7 @@ class enemy(object):
         self.path = [x, end] #This will define where the enemy starts and finishes his path
         self.walk_count = 0
         self.vel = 3
+        self.hitbox = (self.x + 17, self.y + 11, 29, 52)
     
     def move(self):
         if self.vel > 0: #if we are moving right
@@ -113,6 +118,9 @@ class enemy(object):
         else: #otherwise we will display our walk_left images
             win.blit(self.walk_left[self.walk_count // 3], (self.x, self.y))
             self.walk_count += 1
+        
+        self.hitbox = (self.x + 17, self.y + 11, 29, 52)
+        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
 
 #Redrawing the game window - Main function
 def redraw_game_window():
@@ -131,14 +139,26 @@ man = player(200, 410, 64, 64)
 goblin = enemy(100, 410, 64, 64, 300)
 run = True
 bullets = []
+shoot_loop = 0
+
 while run:
     clock.tick(27)
+
+    if shoot_loop > 0:
+        shoot_loop += 1
+    if shoot_loop > 5:
+        shoot_loop = 0
 
     for event in pygame.event.get(): #This will loop through a list of any keyboard or mouse events. 
         if event.type == pygame.QUIT: #checks if the red button in the corner of the windows is clicked
             run = False #Ends the game loop
     
     for bullet in bullets:
+        if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[1]:# Checks x coords
+            if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + goblin.hitbox[2]: #checks y coords
+                goblin.hit() #calls enemy hit method
+                bullets.pop(bullets.index(bullet))
+
         if bullet.x < 500 and bullet.x > 0:
             bullet.x += bullet.vel #moves the bullet by its vel
         else:
@@ -148,7 +168,7 @@ while run:
 
     #we can check if a key is pressed like this
 
-    if keys[pygame.K_SPACE]:
+    if keys[pygame.K_SPACE] and shoot_loop == 0:
         if man.left:
             facing = -1
         else:
