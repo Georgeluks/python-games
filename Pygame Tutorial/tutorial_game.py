@@ -40,15 +40,25 @@ while run:
 
     if keys[pygame.K_RIGHT] and x < 500 - vel - width: #setup boundaries so the top right corner of our character is less than the screen width - its width
         x += vel
+    if not(is_jump): #Check if user is not jumping
+        if keys[pygame.K_UP] and y > vel: #same aplly for the Y coordinate
+            y -= vel
 
-    if keys[pygame.K_UP] and y > vel: #same aplly for the Y coordinate
-        y -= vel
+        if keys[pygame.K_DOWN] and y < 500 - vel - height:
+            y += vel
+        
+        if keys[pygame.K_SPACE]:
+            is_jump = True
+    else:
+        #this is what will happen if we are jumping
+        if jump_count >= -10:
+            y -= (jump_count * abs(jump_count)) * 0.5
+            jump_count -= 1
+        else: #this will execute if our jump is finished 
+            jump_count = 10
+            is_jump = False
+            #Resetting our variables
 
-    if keys[pygame.K_DOWN] and y < 500 - vel - height:
-       y += vel
-    
-    if keys[pygame.K_SPACE]:
-        is_jump = True
 
     win.fill((0,0,0)) #fills the screen with black so we dont keep track of the character last known position
     pygame.draw.rect(win, (255, 0 , 0), (x, y, width, height)) #This takes: windows/surface, color, rect
