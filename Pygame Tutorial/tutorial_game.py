@@ -11,6 +11,10 @@ win = pygame.display.set_mode((500, 480))
 pygame.display.set_caption("First Game")
 #display the game name in the windows display
 
+# Global Variables
+score = 0
+font = pygame.font.SysFont("comicsans", 30, True) 
+
 #importing the images
 walk_right = [pygame.image.load('R1.png'), pygame.image.load('R2.png'), pygame.image.load('R3.png'), pygame.image.load('R4.png'), pygame.image.load('R5.png'), pygame.image.load('R6.png'), pygame.image.load('R7.png'), pygame.image.load('R8.png'), pygame.image.load('R9.png')]
 walk_left = [pygame.image.load('L1.png'), pygame.image.load('L2.png'), pygame.image.load('L3.png'), pygame.image.load('L4.png'), pygame.image.load('L5.png'), pygame.image.load('L6.png'), pygame.image.load('L7.png'), pygame.image.load('L8.png'), pygame.image.load('L9.png')]
@@ -90,6 +94,8 @@ class enemy(object):
         self.walk_count = 0
         self.vel = 3
         self.hitbox = (self.x + 17, self.y + 11, 29, 52)
+        self.health = 10
+        self.visible = True
     
     def move(self):
         if self.vel > 0: #if we are moving right
@@ -107,26 +113,37 @@ class enemy(object):
                 self.x += self.vel
                 self.walk_count = 0
     
+    def hit(self):
+        if self.health > 0:
+            self.health -= 1
+        else:
+            self.visible = False
+        print("hit")
+    
     def draw(self, win):
         self.move()
-        if self.walk_count + 1 >= 33: #33 because the enemies have 11 images for each animation, each image for 3 frames > 3 x 11 = 22
-            self.walk_count = 0
+        if self.visible:
+            if self.walk_count + 1 >= 33: #33 because the enemies have 11 images for each animation, each image for 3 frames > 3 x 11 = 22
+                self.walk_count = 0
 
-        if self.vel > 0: #if we are moving to the right we will display  our walk_right images
-            win.blit(self.walk_right[self.walk_count//3], (self.x, self.y))
-            self.walk_count += 1
-        else: #otherwise we will display our walk_left images
-            win.blit(self.walk_left[self.walk_count // 3], (self.x, self.y))
-            self.walk_count += 1
-        
-        self.hitbox = (self.x + 17, self.y + 11, 29, 52)
-        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+            if self.vel > 0: #if we are moving to the right we will display  our walk_right images
+                win.blit(self.walk_right[self.walk_count//3], (self.x, self.y))
+                self.walk_count += 1
+            else: #otherwise we will display our walk_left images
+                win.blit(self.walk_left[self.walk_count // 3], (self.x, self.y))
+                self.walk_count += 1
+            
+            pygame.draw.rect(win, (255, 0, 0), (self.hitbox[0], self.hitbox[1] - 20, 50, 10))
+            pygame.draw.rect(win, (0, 128, 0), (self.hitbox[0], self.hitbox[1] - 20, 50 - (5 *(10 - self.health)), 10))
+            self.hitbox = (self.x + 17, self.y + 2, 31, 57)
 
 #Redrawing the game window - Main function
 def redraw_game_window():
     win.blit(bg, (0,0)) #this will draw the bg image at (0,0)
     man.draw(win)
     goblin.draw(win)
+    text = font.render("Score: " + str(score), 1, (0,0,0))
+    win.blit(text, (390, 10))
 
     for bullet in bullets:
         bullet.draw(win)
@@ -157,6 +174,7 @@ while run:
         if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[1]:# Checks x coords
             if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + goblin.hitbox[2]: #checks y coords
                 goblin.hit() #calls enemy hit method
+                score += 1
                 bullets.pop(bullets.index(bullet))
 
         if bullet.x < 500 and bullet.x > 0:
