@@ -15,7 +15,14 @@ pygame.display.set_caption("First Game")
 score = 0
 font = pygame.font.SysFont("comicsans", 30, True) 
 
-#importing the images
+#loading the sounds
+bullet_sound = pygame.mixer.Sound("bullet.wav")
+hit_sound = pygame.mixer.Sound("hit.wav")
+
+music = pygame.mixer.music.load("music.wav")
+pygame.mixer.music.play(-1)
+
+#loading the images
 walk_right = [pygame.image.load('R1.png'), pygame.image.load('R2.png'), pygame.image.load('R3.png'), pygame.image.load('R4.png'), pygame.image.load('R5.png'), pygame.image.load('R6.png'), pygame.image.load('R7.png'), pygame.image.load('R8.png'), pygame.image.load('R9.png')]
 walk_left = [pygame.image.load('L1.png'), pygame.image.load('L2.png'), pygame.image.load('L3.png'), pygame.image.load('L4.png'), pygame.image.load('L5.png'), pygame.image.load('L6.png'), pygame.image.load('L7.png'), pygame.image.load('L8.png'), pygame.image.load('L9.png')]
 bg = pygame.image.load('bg.jpg')
@@ -39,6 +46,23 @@ class player(object):
         self.jump_count = 10
         self.standing = True
         self.hitbox = (self.x + 17, self.y + 11, 29, 52) #this elements are: top left x, top left y, width, height
+    
+    def hit(self):
+        self.x = 60
+        self.y = 410
+        self.walk_count = 0 
+        font1 = pygame.font.SysFont('comicsans', 100)
+        text = font1.render('-5', 1, (255,0,0))
+        win.blit(text, (250 - (text.get_width()/2), 200))
+        pygame.display.update()
+        i = 0
+        while i < 300:
+            pygame.time.delay(10)
+            i += 1
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    i = 301
+                    pygame.quit()
     
     def draw(self, win):
         # We have 9 images for our walking animation, I want to show the same image for 3 frames
@@ -114,6 +138,7 @@ class enemy(object):
                 self.walk_count = 0
     
     def hit(self):
+        hit_sound.play()
         if self.health > 0:
             self.health -= 1
         else:
@@ -161,6 +186,11 @@ shoot_loop = 0
 while run:
     clock.tick(27)
 
+    if man.hitbox[1] < goblin.hitbox[1] + goblin.hitbox[3] and man.hitbox[1] + man.hitbox[3] > goblin.hitbox[1]:
+        if man.hitbox[0] + man.hitbox[2] > goblin.hitbox[0] and man.hitbox[0] < goblin.hitbox[0] + goblin.hitbox[2]:
+            man.hit()
+            score -= 5
+
     if shoot_loop > 0:
         shoot_loop += 1
     if shoot_loop > 5:
@@ -187,6 +217,7 @@ while run:
     #we can check if a key is pressed like this
 
     if keys[pygame.K_SPACE] and shoot_loop == 0:
+        bullet_sound.play()
         if man.left:
             facing = -1
         else:
