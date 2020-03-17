@@ -48,7 +48,9 @@ class player(object):
         self.hitbox = (self.x + 17, self.y + 11, 29, 52) #this elements are: top left x, top left y, width, height
     
     def hit(self):
-        self.x = 60
+        self.is_jump = False
+        self.jump_count = 10
+        self.x = 100
         self.y = 410
         self.walk_count = 0 
         font1 = pygame.font.SysFont('comicsans', 100)
@@ -61,7 +63,7 @@ class player(object):
             i += 1
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    i = 301
+                    i = 201
                     pygame.quit()
     
     def draw(self, win):
@@ -88,7 +90,6 @@ class player(object):
                 win.blit(walk_left[0], (self.x, self.y))
             
         self.hitbox = (self.x + 17, self.y + 11, 29, 52)
-        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
 
 #Projectile Class
 class projectile(object):
@@ -114,7 +115,8 @@ class enemy(object):
         self.y = y
         self.width = width
         self.height = height
-        self.path = [x, end] #This will define where the enemy starts and finishes his path
+        self.end = end
+        self.path = [self.x, self.end] #This will define where the enemy starts and finishes his path
         self.walk_count = 0
         self.vel = 3
         self.hitbox = (self.x + 17, self.y + 11, 29, 52)
@@ -123,18 +125,16 @@ class enemy(object):
     
     def move(self):
         if self.vel > 0: #if we are moving right
-            if self.x < self.path[1] + self.vel: #if we`ve not reached the furthest right point on our path
+            if self.x + self.vel < self.path[1] : #if we`ve not reached the furthest right point on our path
                 self.x += self.vel
             else: #Change direction
-                self.vel= self.vel * -1
-                self.x += self.vel
+                self.vel = self.vel * -1
                 self.walk_count = 0
         else: #IF we are moving left
-            if self.x > self.path[0] - self.vel: #if we have not reached the furthest left point on our path
+            if self.x - self.vel > self.path[0]: #if we have not reached the furthest left point on our path
                 self.x += self.vel
             else: #change direction
                 self.vel = self.vel * -1
-                self.x += self.vel
                 self.walk_count = 0
     
     def hit(self):
@@ -168,7 +168,7 @@ def redraw_game_window():
     man.draw(win)
     goblin.draw(win)
     text = font.render("Score: " + str(score), 1, (0,0,0))
-    win.blit(text, (390, 10))
+    win.blit(text, (350, 10))
 
     for bullet in bullets:
         bullet.draw(win)
@@ -186,14 +186,15 @@ shoot_loop = 0
 while run:
     clock.tick(27)
 
-    if man.hitbox[1] < goblin.hitbox[1] + goblin.hitbox[3] and man.hitbox[1] + man.hitbox[3] > goblin.hitbox[1]:
-        if man.hitbox[0] + man.hitbox[2] > goblin.hitbox[0] and man.hitbox[0] < goblin.hitbox[0] + goblin.hitbox[2]:
-            man.hit()
-            score -= 5
+    if goblin.visible:
+        if man.hitbox[1] < goblin.hitbox[1] + goblin.hitbox[3] and man.hitbox[1] + man.hitbox[3] > goblin.hitbox[1]:
+            if man.hitbox[0] + man.hitbox[2] > goblin.hitbox[0] and man.hitbox[0] < goblin.hitbox[0] + goblin.hitbox[2]:
+                man.hit()
+                score -= 5
 
     if shoot_loop > 0:
         shoot_loop += 1
-    if shoot_loop > 5:
+    if shoot_loop > 3:
         shoot_loop = 0
 
     for event in pygame.event.get(): #This will loop through a list of any keyboard or mouse events. 
